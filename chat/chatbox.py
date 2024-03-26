@@ -11,7 +11,7 @@ pygame.init()
 
 pygame.display.set_caption('Pygame Notepad')
 window_surface = pygame.display.set_mode((400, 660))
-manager = UIManager((400, 700), 'data/themes/chat.json')
+manager = UIManager((400, 700), '../data/themes/chat.json')
 
 background = pygame.Surface((400, 700))
 background.fill(manager.ui_theme.get_colour('dark_bg'))
@@ -121,12 +121,25 @@ while is_running:
         #     text_output_box.set_text(event.text)
 
         if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
-            text_output_box.append_html_text("You" + ": " + text_entry_box.get_text() + "<br><br>")
-            # data = str(net.id) + ":" + text_entry_box.get_text()
-            # reply = parse_data(net.send(data))
-            socket_instance.send(text_entry_box.get_text().encode())
-            text_entry_box.clear()
-            pygame.event.post(pygame.event.Event(pygame.KEYDOWN, unicode="U+232B", key=pygame.K_BACKSPACE, mod=pygame.KMOD_NONE))
+            if text_entry_box.get_text()[0] == '/':
+                if text_entry_box.get_text() == "/forfeit":
+                    text_output_box.append_html_text("--Forfeit Request--" + "<br><br>")
+                    socket_instance.send("/forfeit".encode())
+                    text_entry_box.clear()
+                    pygame.event.post(pygame.event.Event(pygame.KEYDOWN, unicode="U+232B", key=pygame.K_BACKSPACE,
+                                                         mod=pygame.KMOD_NONE))
+                else:
+                    text_output_box.append_html_text('<font color="blue">Command not found.</font>' + '<br><br>')
+                    text_entry_box.clear()
+                    pygame.event.post(pygame.event.Event(pygame.KEYDOWN, unicode="U+232B", key=pygame.K_BACKSPACE,
+                                                         mod=pygame.KMOD_NONE))
+            else:
+                text_output_box.append_html_text("You" + ": " + text_entry_box.get_text() + "<br><br>")
+                # data = str(net.id) + ":" + text_entry_box.get_text()
+                # reply = parse_data(net.send(data))
+                socket_instance.send(text_entry_box.get_text().encode())
+                text_entry_box.clear()
+                pygame.event.post(pygame.event.Event(pygame.KEYDOWN, unicode="U+232B", key=pygame.K_BACKSPACE, mod=pygame.KMOD_NONE))
 
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
             if event.ui_element == forfeit_button:
