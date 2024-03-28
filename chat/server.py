@@ -2,13 +2,15 @@ import socket, threading
 
 # Global variable that mantain client's connections
 connections = []
-
+room = []
+tie = []
 
 def handle_user_connection(connection: socket.socket, address: str) -> None:
     '''
         Get user connection in order to keep receiving their messages and
         sent to others users/connections.
     '''
+
     while True:
         try:
             # Get client message
@@ -17,8 +19,19 @@ def handle_user_connection(connection: socket.socket, address: str) -> None:
             # If no message is received, there is a chance that connection has ended
             # so in this case, we need to close connection and remove it from connections list.
             if msg.decode() == "/forfeit":
+
+                msg_to_send = f'--{address[0]}:{address[1]} forfeited this match--'
+                broadcast(msg_to_send, connection)
+                continue
+            if msg.decode() == "/tie":
+                if not tie:
+                    tie.append(connection)
+                # else:
+                #     # if tie[0] != connection:
+                #     #
                 msg_to_send = f'--{address[0]}:{address[1]} want to forfeit this match--'
                 broadcast(msg_to_send, connection)
+                continue
             if msg:
                 # Log message sent by user
                 print(f'{address[0]}:{address[1]} - {msg.decode()}')
@@ -38,15 +51,16 @@ def handle_user_connection(connection: socket.socket, address: str) -> None:
             break
 
 
-def broadcast(message: str, connection: socket.socket) -> None:
+def broadcast(message: str, connection: socket.socket, room_id: int) -> None:
     '''
         Broadcast message to all users connected to the server
     '''
 
     # Iterate on connections in order to send message to all client's connected
+
     for client_conn in connections:
         # Check if isn't the connection of who's send
-        if client_conn != connection:
+        if client_conn != connection or connection is None:
             try:
                 # Sending message to client connection
                 client_conn.send(message.encode())
@@ -65,6 +79,8 @@ def remove_connection(conn: socket.socket) -> None:
     # Check if connection exists on connections list
     if conn in connections:
         # Close socket connection and remove connection from connections list
+        if conn == connections[0] or conn == connections[1]:
+            broadcast("Opponent has left the match!",None)
         conn.close()
         connections.remove(conn)
 
@@ -75,7 +91,7 @@ def server() -> None:
         to handle their messages
     '''
 
-    LISTENING_PORT = 12000
+    LISTENING_PORT = 9999
 
     try:
         # Create server and specifying that it can only handle 4 connections by time!

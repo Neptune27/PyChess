@@ -9,7 +9,7 @@ import socket, threading
 pygame.init()
 
 
-pygame.display.set_caption('Pygame Notepad')
+pygame.display.set_caption('Pygame Chat')
 window_surface = pygame.display.set_mode((400, 660))
 manager = UIManager((400, 700), '../data/themes/chat.json')
 
@@ -70,7 +70,7 @@ def handle_messages(connection: socket.socket):
             # If not, it will try to decode message in order to show to user.
             if msg:
                 #print(msg.decode())
-                text_output_box.append_html_text(msg.decode() + "<br><br>")
+                text_output_box.append_html_text(msg.decode() + "<br>")
             else:
                 connection.close()
                 break
@@ -87,7 +87,8 @@ def handle_messages(connection: socket.socket):
 data = ""
 reply = ""
 SERVER_ADDRESS = '127.0.0.1'
-SERVER_PORT = 12000
+SERVER_PORT = 9999
+
 
 try:
     # Instantiate socket and start connection with server
@@ -123,18 +124,24 @@ while is_running:
         if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
             if text_entry_box.get_text()[0] == '/':
                 if text_entry_box.get_text() == "/forfeit":
-                    text_output_box.append_html_text("--Forfeit Request--" + "<br><br>")
+                    text_output_box.append_html_text("<font color=#ff3e30>--Forfeit Request--</font>" + "<br><br>")
                     socket_instance.send("/forfeit".encode())
                     text_entry_box.clear()
                     pygame.event.post(pygame.event.Event(pygame.KEYDOWN, unicode="U+232B", key=pygame.K_BACKSPACE,
                                                          mod=pygame.KMOD_NONE))
+                if text_entry_box.get_text() == "/tie":
+                    text_output_box.append_html_text("<font color=#c5db00>--Tie Request--</font>" + "<br><br>")
+                    socket_instance.send("/tie".encode())
+                    text_entry_box.clear()
+                    pygame.event.post(pygame.event.Event(pygame.KEYDOWN, unicode="U+232B", key=pygame.K_BACKSPACE,
+                                                         mod=pygame.KMOD_NONE))
                 else:
-                    text_output_box.append_html_text('<font color="blue">Command not found.</font>' + '<br><br>')
+                    text_output_box.append_html_text("<font color=#990a00>Command not found.</font><br><br>")
                     text_entry_box.clear()
                     pygame.event.post(pygame.event.Event(pygame.KEYDOWN, unicode="U+232B", key=pygame.K_BACKSPACE,
                                                          mod=pygame.KMOD_NONE))
             else:
-                text_output_box.append_html_text("You" + ": " + text_entry_box.get_text() + "<br><br>")
+                text_output_box.append_html_text("You" + ": " + text_entry_box.get_text() + "<br>")
                 # data = str(net.id) + ":" + text_entry_box.get_text()
                 # reply = parse_data(net.send(data))
                 socket_instance.send(text_entry_box.get_text().encode())
@@ -143,8 +150,11 @@ while is_running:
 
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
             if event.ui_element == forfeit_button:
-                text_output_box.append_html_text("--Forfeit Request--" + "<br><br>")
+                text_output_box.append_html_text("<font color=#ff3e30>--Forfeit Request--</font>" + "<br><br>")
                 socket_instance.send("/forfeit".encode())
+            if event.ui_element == tie_button:
+                text_output_box.append_html_text("<font color=#c5db00>--Forfeit Request--</font>" + "<br><br>")
+                socket_instance.send("/tie".encode())
 
         # if reply != "":
         #     text_output_box.append_html_text("Opponent:" + reply + "<br><br>")
